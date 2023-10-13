@@ -6,6 +6,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public class StatsClient {
     private final RestTemplate restTemplate;
     private final String serverUrl;
 
-    public StatsClient(RestTemplate restTemplate, @Value("${stat-server.url}") String serverUrl) {
+    public StatsClient(@Value("${stats-server.url}") String serverUrl, RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
         this.serverUrl = serverUrl;
     }
@@ -28,8 +29,8 @@ public class StatsClient {
 
     public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         Map<String, Object> parameters = Map.of(
-                "start", start,
-                "end", end,
+                "start", start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                "end", end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 "uris", String.join(",", uris),
                 "unique", unique
         );
@@ -41,7 +42,6 @@ public class StatsClient {
         );
 
         return responseEntity.getBody();
-
     }
 
     private HttpHeaders defaultHeaders() {

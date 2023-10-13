@@ -32,6 +32,6 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleTimeValidationException(final DateTimeValidationException e) {
         return new ApiError(e.getMessage(), "Incorrectly made request.",
-                HttpStatus.NOT_FOUND.toString(), LocalDateTime.now());
+                HttpStatus.BAD_REQUEST.toString(), LocalDateTime.now());
     }
 }

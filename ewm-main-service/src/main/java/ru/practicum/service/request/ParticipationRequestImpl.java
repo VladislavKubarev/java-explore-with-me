@@ -52,13 +52,10 @@ public class ParticipationRequestImpl implements ParticipationRequestService {
         }
         if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
             participationRequest.setStatus(RequestStatus.CONFIRMED);
-            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-            eventRepository.save(event);
         } else {
             participationRequest.setStatus(RequestStatus.PENDING);
         }
-        if (participationRequestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED) >= event.getParticipantLimit()
-                && event.getParticipantLimit() != 0) {
+        if (getConfirmedRequests(eventId) >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
             throw new DataConflictException("The limit of requests for participation in the event has been exceeded");
         }
 
@@ -87,32 +84,28 @@ public class ParticipationRequestImpl implements ParticipationRequestService {
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
 
+        Long countConfirmedRequests = getConfirmedRequests(eventId);
+
         for (ParticipationRequest request : participationRequests) {
             if (!request.getStatus().equals(RequestStatus.PENDING)) {
                 throw new DataConflictException("Request must have status PENDING");
             }
             if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
                 request.setStatus(RequestStatus.CONFIRMED);
-                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-                eventRepository.save(event);
             }
             if (eventRequestStatusUpdateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
-                if (participationRequestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED) >= event.getParticipantLimit()
-                        && event.getParticipantLimit() != 0) {
+                if (countConfirmedRequests >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
                     throw new DataConflictException("The limit of requests for participation in the event has been exceeded");
                 } else {
                     request.setStatus(RequestStatus.CONFIRMED);
-                    event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-                    eventRepository.save(event);
-                    participationRequestRepository.save(request);
                     confirmedRequests.add(ParticipationRequestMapper.mapToParticipationRequestDto(request));
                 }
             } else {
                 request.setStatus(RequestStatus.REJECTED);
-                participationRequestRepository.save(request);
                 rejectedRequests.add(ParticipationRequestMapper.mapToParticipationRequestDto(request));
             }
         }
+        participationRequestRepository.saveAll(participationRequests);
 
         return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
     }
@@ -137,5 +130,9 @@ public class ParticipationRequestImpl implements ParticipationRequestService {
 
         return participationRequestRepository.findAllByRequesterId(userId).stream()
                 .map(ParticipationRequestMapper::mapToParticipationRequestDto).collect(Collectors.toList());
+    }
+
+    private Long getConfirmedRequests(Long eventId) {
+        return participationRequestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
     }
 }

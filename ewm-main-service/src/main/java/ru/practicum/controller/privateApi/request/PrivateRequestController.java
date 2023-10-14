@@ -3,6 +3,7 @@ package ru.practicum.controller.privateApi.request;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.model.request.dtos.ParticipationRequestDto;
 import ru.practicum.service.request.ParticipationRequestService;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 @RequestMapping("/users/{userId}/requests")
 public class PrivateRequestController {
     private final ParticipationRequestService participationRequestService;
@@ -25,14 +27,12 @@ public class PrivateRequestController {
     }
 
     @PatchMapping("/{requestId}/cancel")
-    @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto cancelRequest(@Positive @PathVariable Long userId,
                                                  @Positive @PathVariable Long requestId) {
         return participationRequestService.cancelRequest(userId, requestId);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getAllRequestsByUser(@Positive @PathVariable Long userId) {
         return participationRequestService.getAllRequestsByUser(userId);
     }

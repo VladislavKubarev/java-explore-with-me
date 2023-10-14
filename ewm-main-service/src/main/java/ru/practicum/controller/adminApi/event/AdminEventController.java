@@ -3,7 +3,7 @@ package ru.practicum.controller.adminApi.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.model.event.dtos.EventFullDto;
 import ru.practicum.model.event.dtos.UpdateEventUserRequest;
@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 @RequestMapping("/admin/events")
 public class AdminEventController {
     private final EventService eventService;
 
     @PatchMapping("/{eventId}")
-    @ResponseStatus(HttpStatus.OK)
     public EventFullDto changeEventByAdmin(@Positive @PathVariable Long eventId,
                                            @Valid @RequestBody UpdateEventUserRequest updateEventUserRequest) {
 
@@ -32,7 +32,6 @@ public class AdminEventController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<EventFullDto> getAllEventsByAdmin(@RequestParam(required = false) List<Long> users,
                                                   @RequestParam(required = false) List<EventState> states,
                                                   @RequestParam(required = false) List<Long> categories,

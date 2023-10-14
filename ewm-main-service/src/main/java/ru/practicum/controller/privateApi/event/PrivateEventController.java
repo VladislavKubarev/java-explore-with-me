@@ -3,6 +3,7 @@ package ru.practicum.controller.privateApi.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.model.event.dtos.EventFullDto;
 import ru.practicum.model.event.dtos.EventShortDto;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 @RequestMapping("/users/{userId}/events")
 public class PrivateEventController {
     private final EventService eventService;
@@ -34,14 +36,12 @@ public class PrivateEventController {
     }
 
     @GetMapping("/{eventId}")
-    @ResponseStatus(HttpStatus.OK)
     public EventFullDto getEventByEventIdPrivate(@Positive @PathVariable Long userId,
                                                  @Positive @PathVariable Long eventId) {
         return eventService.getEventByEventIdPrivate(userId, eventId);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<EventShortDto> getAllEventsByUser(@Positive @PathVariable Long userId,
                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                                   @Positive @RequestParam(defaultValue = "10") Integer size) {
@@ -49,21 +49,18 @@ public class PrivateEventController {
     }
 
     @PatchMapping("/{eventId}")
-    @ResponseStatus(HttpStatus.OK)
     public EventFullDto changeEventByUser(@Positive @PathVariable Long userId, @Positive @PathVariable Long eventId,
                                           @Valid @RequestBody UpdateEventUserRequest newEventDto) {
         return eventService.changeEventByUser(userId, eventId, newEventDto);
     }
 
     @GetMapping("/{eventId}/requests")
-    @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getRequestsInEventByUser(@Positive @PathVariable Long userId,
                                                                   @Positive @PathVariable Long eventId) {
         return participationRequestService.getRequestsInEventByUser(userId, eventId);
     }
 
     @PatchMapping("/{eventId}/requests")
-    @ResponseStatus(HttpStatus.OK)
     public EventRequestStatusUpdateResult changeStatusRequestInEventByUser(@Positive @PathVariable Long userId,
                                                                            @Positive @PathVariable Long eventId,
                                                                            @RequestBody EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {

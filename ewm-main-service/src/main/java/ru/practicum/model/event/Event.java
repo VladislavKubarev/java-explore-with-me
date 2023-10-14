@@ -27,8 +27,6 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-    @Column(name = "confirmed_requests")
-    private Long confirmedRequests;
     @Column(name = "created_on")
     private LocalDateTime createdOn;
     @Column(name = "event_date")
@@ -48,5 +46,4 @@ public class Event {
     private Boolean requestModeration;
     @Enumerated(EnumType.STRING)
     private EventState state;
-    private Long views;
 }

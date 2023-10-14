@@ -11,7 +11,6 @@ import ru.practicum.mapper.category.CategoryMapper;
 import ru.practicum.model.category.Category;
 import ru.practicum.model.category.dtos.CategoryDto;
 import ru.practicum.model.category.dtos.NewCategoryDto;
-import ru.practicum.model.event.Event;
 import ru.practicum.repository.category.CategoryRepository;
 import ru.practicum.repository.event.EventRepository;
 
@@ -41,8 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(catId).orElseThrow(
                 () -> new DataNotFoundException(String.format("Category with id %d not found", catId)));
 
-        List<Event> eventsWithThisCategory = eventRepository.findAllByCategoryId(catId);
-        if (!eventsWithThisCategory.isEmpty()) {
+        if (eventRepository.existsEventByCategoryId(catId)) {
             throw new DataConflictException(String.format("The category with id %d is not empty", catId));
         }
         categoryRepository.deleteById(catId);

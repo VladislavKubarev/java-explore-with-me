@@ -34,15 +34,13 @@ location_id BIGINT REFERENCES locations (location_id),
 title VARCHAR(120) NOT NULL,
 annotation VARCHAR(2000) NOT NULL,
 description VARCHAR(7000) NOT NULL,
-confirmed_requests BIGINT,
 created_on TIMESTAMP NOT NULL,
 event_date TIMESTAMP NOT NULL,
 paid BOOLEAN NOT NULL,
 participant_limit BIGINT NOT NULL,
 published_on TIMESTAMP,
 request_moderation BOOLEAN NOT NULL,
-state VARCHAR(32) NOT NULL,
-views BIGINT DEFAULT 0
+state VARCHAR(32) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS requests (

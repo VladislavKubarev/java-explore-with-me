@@ -3,6 +3,7 @@ package ru.practicum.controller.adminApi.compilation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.model.compilation.dtos.CompilationDto;
 import ru.practicum.model.compilation.dtos.NewCompilationDto;
@@ -15,6 +16,7 @@ import javax.validation.constraints.Positive;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 @RequestMapping("/admin/compilations")
 public class AdminCompilationController {
     private final CompilationService compilationService;
@@ -32,7 +34,6 @@ public class AdminCompilationController {
     }
 
     @PatchMapping("/{compId}")
-    @ResponseStatus(HttpStatus.OK)
     public CompilationDto changeCompilation(@Positive @PathVariable Long compId,
                                             @Valid @RequestBody UpdateCompilationRequest updateCompilationRequest) {
 

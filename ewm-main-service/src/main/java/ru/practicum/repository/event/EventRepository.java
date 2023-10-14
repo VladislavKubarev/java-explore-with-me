@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.model.event.Event;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
-    Event findByInitiatorIdAndId(Long userId, Long eventId);
+    Optional<Event> findByInitiatorIdAndId(Long userId, Long eventId);
 
     List<Event> findAllByInitiatorId(Long userId, Pageable pageable);
 
-    List<Event> findAllByCategoryId(Long categoryId);
+    Boolean existsEventByCategoryId(Long categoryId);
 }

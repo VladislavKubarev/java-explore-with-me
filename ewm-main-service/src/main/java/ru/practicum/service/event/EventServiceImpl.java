@@ -25,6 +25,7 @@ import ru.practicum.model.event.enums.EventState;
 import ru.practicum.model.event.dtos.EventFullDto;
 import ru.practicum.model.event.dtos.NewEventDto;
 import ru.practicum.model.location.Location;
+import ru.practicum.model.request.ParticipationRequest;
 import ru.practicum.model.request.enums.RequestStatus;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.category.CategoryRepository;
@@ -46,6 +47,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
+
     private final StatsClient statsClient = new StatsClient("http://stats-server:9090", new RestTemplate());
 
 
@@ -88,6 +90,7 @@ public class EventServiceImpl implements EventService {
 
         Long countConfirmedRequests = participationRequestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
         Map<Long, Long> views = getViewStatistics(List.of(event));
+
         eventFullDto.setConfirmedRequests(countConfirmedRequests);
         eventFullDto.setViews(views.getOrDefault(eventFullDto.getId(), 0L));
 
@@ -103,14 +106,15 @@ public class EventServiceImpl implements EventService {
 
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
         List<Long> eventsId = events.stream().map(Event::getId).collect(Collectors.toList());
-        Long countConfirmedRequests = getConfirmedRequests(eventsId);
+
+        Map<Long, Long> countConfirmedRequests = getConfirmedRequests(eventsId);
         Map<Long, Long> views = getViewStatistics(events);
 
         List<EventShortDto> eventsShortDto = events.stream()
                 .map(EventMapper::mapToEventShortDto).collect(Collectors.toList());
 
         for (EventShortDto event : eventsShortDto) {
-            event.setConfirmedRequests(countConfirmedRequests);
+            event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
         }
 
@@ -259,14 +263,14 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.findAll(filter, pageable).getContent();
         List<Long> eventsId = events.stream().map(Event::getId).collect(Collectors.toList());
 
-        Long countConfirmedRequests = getConfirmedRequests(eventsId);
+        Map<Long, Long> countConfirmedRequests = getConfirmedRequests(eventsId);
         Map<Long, Long> views = getViewStatistics(events);
 
         List<EventFullDto> eventsFullDto = events.stream()
                 .map(EventMapper::mapToEventFullDto).collect(Collectors.toList());
 
         for (EventFullDto event : eventsFullDto) {
-            event.setConfirmedRequests(countConfirmedRequests);
+            event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
         }
 
@@ -327,11 +331,11 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.findAll(filter, pageable).getContent();
         List<Long> eventsId = events.stream().map(Event::getId).collect(Collectors.toList());
 
-        Long countConfirmedRequests = getConfirmedRequests(eventsId);
+        Map<Long, Long> countConfirmedRequests = getConfirmedRequests(eventsId);
 
         if (onlyAvailable) {
             events = events.stream()
-                    .filter(e -> e.getParticipantLimit() > countConfirmedRequests)
+                    .filter(e -> e.getParticipantLimit() > countConfirmedRequests.getOrDefault(e.getId(), 0L))
                     .collect(Collectors.toList());
         }
 
@@ -341,7 +345,7 @@ public class EventServiceImpl implements EventService {
                 .map(EventMapper::mapToEventShortDto).collect(Collectors.toList());
 
         for (EventShortDto event : eventShortDto) {
-            event.setConfirmedRequests(countConfirmedRequests);
+            event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
         }
 
@@ -399,7 +403,13 @@ public class EventServiceImpl implements EventService {
         return views;
     }
 
-    private Long getConfirmedRequests(List<Long> eventId) {
-        return participationRequestRepository.countByEventIdInAndStatus(eventId, RequestStatus.CONFIRMED);
+    private Map<Long, Long> getConfirmedRequests(List<Long> eventId) {
+        List<ParticipationRequest> confirmedRequests = participationRequestRepository.findAllByEventIdInAndStatus(eventId, RequestStatus.CONFIRMED);
+
+        return confirmedRequests.stream()
+                .collect(Collectors.groupingBy(participationRequest -> participationRequest.getEvent().getId()))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, req -> Long.valueOf(req.getValue().size())));
     }
 }

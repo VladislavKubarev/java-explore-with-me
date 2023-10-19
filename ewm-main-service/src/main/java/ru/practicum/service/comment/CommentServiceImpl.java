@@ -87,7 +87,7 @@ public class CommentServiceImpl implements CommentService {
         Comment updatableComment = commentRepository.findById(commentId).orElseThrow(
                 () -> new DataNotFoundException(String.format("Comment with id %d not found.", commentId)));
 
-        if (updatableComment.getCreated().isAfter(LocalDateTime.now().minusHours(1))) {
+        if (updatableComment.getCreated().isBefore(LocalDateTime.now().minusHours(1))) {
             throw new DateTimeValidationException("Cannot edit a comment posted more than an hour ago.");
         }
         if (!updatableComment.getAuthor().getId().equals(userId)) {

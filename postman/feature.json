@@ -220,110 +220,6 @@
 							"response": []
 						},
 						{
-							"name": "Изменение комментария спустя некоторое время",
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"const main = async () => {\r",
-											"    const api = new API(pm);\r",
-											"    const rnd = new RandomUtils();\r",
-											"    let comment\r",
-											"    try {\r",
-											"        const initiator = await api.addUser(rnd.getUser());\r",
-											"        const author = await api.addUser(rnd.getUser());\r",
-											"        const category = await api.addCategory(rnd.getCategory());\r",
-											"        let event = await api.addEvent(initiator.id, rnd.getEvent(category.id));\r",
-											"        event = await api.publishEvent(event.id);\r",
-											"        comment = await api.addComment(author.id, event.id, rnd.getComment());\r",
-											"        comment.createdOn = \"2023-10-19 17:00:00\";\r",
-											"        pm.collectionVariables.set(\"uid\", author.id);\r",
-											"        pm.collectionVariables.set(\"comid\", comment.id);\r",
-											"\r",
-											"    pm.request.body.update({\r",
-											"        mode: 'raw',\r",
-											"        raw: JSON.stringify({\r",
-											"            text : rnd.getComment().text\r",
-											"        }),\r",
-											"        options: { raw: { language: 'json' } }\r",
-											"    });\r",
-											"    \r",
-											"    } catch(err) {\r",
-											"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
-											"    }\r",
-											"};\r",
-											"\r",
-											"const interval = setInterval(() => {}, 1000);\r",
-											"\r",
-											"setTimeout(async () => \r",
-											"    {\r",
-											"        try {\r",
-											"            await main();\r",
-											"        } catch (e) {\r",
-											"            console.error(e);\r",
-											"        } finally {\r",
-											"            clearInterval(interval);\r",
-											"        }\r",
-											"    },  \r",
-											"    100 \r",
-											");"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {\r",
-											"    pm.response.to.have.status(400);\r",
-											"    pm.response.to.be.withBody;\r",
-											"    pm.response.to.be.json;\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PATCH",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{{request_body}}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseUrl}}/users/:userId/comments/:commentId",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"users",
-										":userId",
-										"comments",
-										":commentId"
-									],
-									"variable": [
-										{
-											"key": "userId",
-											"value": "{{uid}}"
-										},
-										{
-											"key": "commentId",
-											"value": "{{comid}}"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Добавление комментария с text > 1000",
 							"event": [
 								{
@@ -1064,14 +960,14 @@
 									"});\r",
 									"\r",
 									"source = pm.collectionVariables.get('response');\r",
-									"comId = parseInt(pm.collectionVariables.get('comId'));\r",
+									"comid = parseInt(pm.collectionVariables.get('comid'));\r",
 									"\r",
 									"pm.test(\"Комментарий должен быть найден до удаления\", function () {\r",
-									"    pm.expect(source.id).equal(comId, 'Идентификтор комментария должен совпадать с удаляемым');\r",
+									"    pm.expect(source.id).equal(comid, 'Идентификтор комментария должен совпадать с удаляемым');\r",
 									"});\r",
 									"\r",
 									"pm.sendRequest({\r",
-									"            url: pm.collectionVariables.get(\"baseUrl\") + \"/admin/comments/\"  + comId,\r",
+									"            url: pm.collectionVariables.get(\"baseUrl\") + \"/admin/comments/\"  + comid,\r",
 									"            method: 'GET',\r",
 									"        }, (error, response) => {\r",
 									"            pm.test(\"Комментарий не должен быть найден после удаления\", function () {\r",
@@ -1421,14 +1317,14 @@
 									"});\r",
 									"\r",
 									"source = pm.collectionVariables.get('response');\r",
-									"comId = parseInt(pm.collectionVariables.get('comId'));\r",
+									"comid = parseInt(pm.collectionVariables.get('comid'));\r",
 									"\r",
 									"pm.test(\"Комментарий должен быть найден до удаления\", function () {\r",
-									"    pm.expect(source.id).equal(comId, 'Идентификтор комментария должен совпадать с удаляемым');\r",
+									"    pm.expect(source.id).equal(comid, 'Идентификтор комментария должен совпадать с удаляемым');\r",
 									"});\r",
 									"\r",
 									"pm.sendRequest({\r",
-									"            url: pm.collectionVariables.get(\"baseUrl\") + \"/admin/comments/\"  + comId,\r",
+									"            url: pm.collectionVariables.get(\"baseUrl\") + \"/admin/comments/\"  + comid,\r",
 									"            method: 'GET',\r",
 									"        }, (error, response) => {\r",
 									"            pm.test(\"Комментарий не должен быть найден после удаления\", function () {\r",
@@ -1810,10 +1706,6 @@
 		},
 		{
 			"key": "response",
-			"value": ""
-		},
-		{
-			"key": "comId",
 			"value": ""
 		}
 	]

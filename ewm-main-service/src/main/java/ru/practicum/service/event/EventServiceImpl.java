@@ -29,6 +29,7 @@ import ru.practicum.model.request.ParticipationRequest;
 import ru.practicum.model.request.enums.RequestStatus;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.category.CategoryRepository;
+import ru.practicum.repository.comment.CommentRepository;
 import ru.practicum.repository.event.EventRepository;
 import ru.practicum.repository.location.LocationRepository;
 import ru.practicum.repository.request.ParticipationRequestRepository;
@@ -47,7 +48,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
-
+    private final CommentRepository commentRepository;
     private final StatsClient statsClient = new StatsClient("http://stats-server:9090", new RestTemplate());
 
 
@@ -116,6 +117,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto event : eventsShortDto) {
             event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
+            event.setNumberOfComments(commentRepository.countByEventId(event.getId()));
         }
 
         return eventsShortDto;
@@ -347,6 +349,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto event : eventShortDto) {
             event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
+            event.setNumberOfComments(commentRepository.countByEventId(event.getId()));
         }
 
         if (sort != null && sort.equals("EVENT_DATE")) {

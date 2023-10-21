@@ -13,9 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Comment {
-
     @Id
     @Column(name = "comment_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +26,5 @@ public class Comment {
     @JoinColumn(name = "author_id")
     private User author;
     private LocalDateTime created;
+    private LocalDateTime changed;
 }

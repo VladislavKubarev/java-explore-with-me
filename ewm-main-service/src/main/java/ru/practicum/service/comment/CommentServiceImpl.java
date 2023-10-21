@@ -94,6 +94,7 @@ public class CommentServiceImpl implements CommentService {
             throw new DataConflictException("Cannot edit someone else's comment.");
         }
         updatableComment.setText(newCommentDto.getText());
+        updatableComment.setChanged(LocalDateTime.now());
         commentRepository.save(updatableComment);
 
         CommentFullDto commentFullDto = CommentMapper.mapToCommentFullDto(updatableComment);
@@ -124,6 +125,7 @@ public class CommentServiceImpl implements CommentService {
                 () -> new DataNotFoundException(String.format("Comment with id %d not found.", commentId)));
 
         updatableComment.setText(newCommentDto.getText());
+        updatableComment.setChanged(LocalDateTime.now());
         commentRepository.save(updatableComment);
 
         CommentFullDto commentFullDto = CommentMapper.mapToCommentFullDto(updatableComment);

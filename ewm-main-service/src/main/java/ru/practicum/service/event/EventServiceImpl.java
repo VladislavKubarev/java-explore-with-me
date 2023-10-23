@@ -17,6 +17,7 @@ import ru.practicum.exception.DateTimeValidationException;
 import ru.practicum.mapper.event.EventMapper;
 import ru.practicum.mapper.location.LocationMapper;
 import ru.practicum.model.category.Category;
+import ru.practicum.model.comment.Comment;
 import ru.practicum.model.event.Event;
 import ru.practicum.model.event.QEvent;
 import ru.practicum.model.event.dtos.EventShortDto;
@@ -29,6 +30,7 @@ import ru.practicum.model.request.ParticipationRequest;
 import ru.practicum.model.request.enums.RequestStatus;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.category.CategoryRepository;
+import ru.practicum.repository.comment.CommentRepository;
 import ru.practicum.repository.event.EventRepository;
 import ru.practicum.repository.location.LocationRepository;
 import ru.practicum.repository.request.ParticipationRequestRepository;
@@ -47,7 +49,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
-
+    private final CommentRepository commentRepository;
     private final StatsClient statsClient = new StatsClient("http://stats-server:9090", new RestTemplate());
 
 
@@ -109,6 +111,7 @@ public class EventServiceImpl implements EventService {
 
         Map<Long, Long> countConfirmedRequests = getConfirmedRequests(eventsId);
         Map<Long, Long> views = getViewStatistics(events);
+        Map<Long, Long> countComments = getComments(eventsId);
 
         List<EventShortDto> eventsShortDto = events.stream()
                 .map(EventMapper::mapToEventShortDto).collect(Collectors.toList());
@@ -116,6 +119,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto event : eventsShortDto) {
             event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
+            event.setNumberOfComments(countComments.getOrDefault(event.getId(), 0L));
         }
 
         return eventsShortDto;
@@ -332,6 +336,7 @@ public class EventServiceImpl implements EventService {
         List<Long> eventsId = events.stream().map(Event::getId).collect(Collectors.toList());
 
         Map<Long, Long> countConfirmedRequests = getConfirmedRequests(eventsId);
+        Map<Long, Long> countComments = getComments(eventsId);
 
         if (onlyAvailable) {
             events = events.stream()
@@ -347,6 +352,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto event : eventShortDto) {
             event.setConfirmedRequests(countConfirmedRequests.getOrDefault(event.getId(), 0L));
             event.setViews(views.getOrDefault(event.getId(), 0L));
+            event.setNumberOfComments(countComments.getOrDefault(event.getId(), 0L));
         }
 
         if (sort != null && sort.equals("EVENT_DATE")) {
@@ -411,5 +417,15 @@ public class EventServiceImpl implements EventService {
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, req -> Long.valueOf(req.getValue().size())));
+    }
+
+    private Map<Long, Long> getComments(List<Long> eventId) {
+        List<Comment> commentsList = commentRepository.findAllByEventIdIn(eventId);
+
+        return commentsList.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getEvent().getId()))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, comm -> Long.valueOf(comm.getValue().size())));
     }
 }
